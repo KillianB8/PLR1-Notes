@@ -1,0 +1,276 @@
+\documentclass[a4paper, UKenglish, cleveref, autoref, numberwithinsect]{lipics-modified}
+
+\pdfoutput=1
+\hideLIPIcs
+%\graphicspath{{./assets/}}
+\bibliographystyle{unsrt}
+\nolinenumbers
+
+\title{Algorithms in Toposes}
+
+\author{Killian {Barbé}}{ENS de Lyon, Lyon, France}{killian.barbe@ens-lyon.fr}{https://orcid.org/0009-0001-8345-9233}{}
+
+\authorrunning{Killian Barbé}
+%\usepackage{showframe}
+
+\usepackage{kpfonts}
+\renewcommand*\ttdefault{cmvtt}
+
+\usepackage{lipsum}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage[lined,boxed]{algorithm2e}
+\usepackage{bbm}
+\usepackage{tabularx}
+\usepackage{quiver}
+\usepackage{tikz}
+\usepackage{adjustbox}
+\usepackage{setspace}
+\usepackage{silence}
+
+\WarningFilter{microtype}{}
+
+%\setlength{\mathindent}{0pt}
+\usetikzlibrary{automata, positioning, arrows, cd, decorations.markings}
+\tikzset{negated/.style={
+        decoration={markings,
+            mark= at position 0.5 with {
+                \node[transform shape] (tempnode) {$\slash$};
+            }
+        },
+        postaction={decorate}
+    }
+}
+\allowdisplaybreaks
+\newcommand*{\todo}[1][todo]{%
+  \protect\leavevmode
+  \begingroup
+    \color{red}#1%
+  \endgroup
+}
+\renewcommand{\baselinestretch}{1.1} 
+
+\newcommand{\Set}{\mathbf{Set}}
+\newcommand{\Cat}{\mathbf{Cat}}
+\newcommand{\Rel}{\mathbf{Rel}}
+\newcommand{\Auto}{\mathbf{Auto}}
+\newcommand{\Nom}{\mathbf{Nom}}
+\newcommand{\PSh}{\mathbf{PSh}}
+
+\renewcommand{\geq}{\geqslant}
+\renewcommand{\leq}{\leqslant}
+\renewcommand{\epsilon}{\varepsilon}
+\newcommand{\emp}{\emptyset}
+\newcommand{\tp}{\dashv}
+\newcommand{\hookto}{\hookrightarrow}
+
+\newcommand{\id}{\mathrm{id}}
+\newcommand{\coker}{\mathrm{coker}}
+\newcommand{\Eq}{\mathrm{Eq}}
+\newcommand{\ob}{\mathrm{ob}}
+\newcommand{\op}{\mathrm{op}}
+\newcommand{\ev}{\mathrm{ev}}
+\newcommand{\Hom}{\mathrm{Hom}}
+\newcommand{\dom}{\mathrm{dom}}
+
+\newcommand{\Lan}{\mathsf{Lan}}
+\newcommand{\Ran}{\mathsf{Ran}}
+
+\newcommand{\Member}{\mathsf{Member}}
+\newcommand{\Equiv}{\mathsf{Equiv}}
+\newcommand{\TopL}{\mathsf{Top}L^*}
+
+\newcommand{\row}{\textup{\texttt{row}}}
+\newcommand{\pref}{\textup{\texttt{pref}}}
+\newcommand{\suff}{\textup{\texttt{suff}}}
+\newcommand{\merge}{\textup{\texttt{merge}}}
+\newcommand{\rank}{\textup{\texttt{rank}}}
+
+\newcommand{\insf}{\mathsf{in}}
+\newcommand{\stsf}{\mathsf{st}}
+\newcommand{\outsf}{\mathsf{out}}
+\newcommand{\hyp}{\mathcal{H}_{Q,T}}
+\newcommand{\Min}{\mathsf{Min}}
+
+\newcommand{\perm}{\mathfrak{S}}
+\newcommand{\fE}{\mathfrak{E}}
+\newcommand{\fM}{\mathfrak{M}}
+
+\newcommand{\un}{\mathbbmss{1}}
+
+\newcommand{\Res}{\mathsf{Res}}
+\newcommand{\Atoms}{\mathsf{Atoms}}
+\newcommand{\PAtoms}{\mathsf{PAtoms}}
+
+\def\cal#1{\expandafter\def\csname m#1\endcsname{\mathcal{#1}}}
+\def\allcal#1{\ifx#1\allcal\else\cal#1\expandafter\allcal\fi}
+\def\bold#1{\expandafter\def\csname b#1\endcsname{\mathbb{#1}}}
+\def\allbold#1{\ifx#1\allbold\else\bold#1\expandafter\allbold\fi}
+\allcal ABCDEFGHIJKLMNOPQRSTUVWXYZ\allcal
+\allbold ABCDEFGHIJKLMNOPQRSTUVWXYZ\allbold
+
+\begin{document}
+\fontsize{12}{14}\selectfont
+
+%\pagenumbering{gobble}
+\hypersetup{pageanchor=false}
+\begin{center}
+    \rule{\linewidth}{0.3mm} \\[0.4cm]
+    {\huge \bfseries Nominal Brzozowski -- Notes \& Proofs}\\
+    \rule{\linewidth}{0.3mm} \\[0.4cm]
+    \begin{center} \Large
+        Killian \textsc{Barbé}\\\vspace{1em}
+    \end{center}
+\end{center}
+
+\setlength{\parindent}{0pt}
+
+Unless stated otherwise, we consider non-deterministic orbit-finite nominal automata \textbf{with} guessing in these notes.
+
+\section{Atomic Nominal Automata}
+
+\subsection{Definitions}
+
+Throughout this part, we consider some orbit-finite non-deterministic nominal automaton $\mN=(Q,\delta,I,F)$ over $\Sigma=\bA$, recognising a language $\mL$.
+
+\begin{definition}[Right language]
+
+Given a state $q\in Q$ of $\mN$, we call right language of $q$ the language $$\mL_{q,F}^\mN=\{w\in\Sigma^*\mid\delta(q,w)\cap F\neq\varnothing\}$$
+
+We analogously define the left language $\mL_{\mI,q}^{\mN}$ of q.
+
+\end{definition}
+
+\begin{note*}
+
+The set of right languages $\{\mL_{q,F}^\mN\mid q\in Q\}$ of $\mN$ is orbit-finite since the function which maps states to their right language is equivariant.
+
+\end{note*}
+
+\begin{definition}[Residual languages]
+
+We define the residual languages of $\mL$ to be those of the form $w^{-1}\mL$ for some word $w$. A non-deterministic nominal automaton will be called residual when each of its right languages is a residual language. We denote by $\Res(\mL)$ the set of residual languages of $\mL$.
+
+\end{definition}
+
+\begin{note*}
+
+It follows from Myhill-Nerode that $\Res(\mL)$ is orbit-finite if and only if $\mL$ is recognised by an orbit-finite deterministic nominal automaton.
+
+\end{note*}
+
+\begin{definition}[Atoms of a language]
+
+An atom of $\mL$ is a non-empty intersection of all (possibly complemented) residual languages, i.e. a language of the form $$A=\bigcap_{\mK\in\Res(\mL)}\widetilde{\mK}$$ (the tilde represents possible complementation). We write $\Atoms(\mL)$ the set of atoms of $\mL$.
+
+\end{definition}
+
+\begin{definition}[Partial atoms of an automaton]
+
+A partial atom of $\mN$ is a non-empty intersection of all (possibly complemented) right languages of $\mN$, i.e. a language of the form $$X=\bigcap_{q\in Q}\widetilde{\mL_{q,F}^\mN}$$
+
+We write $\PAtoms(\mN)$ the set of partial atoms of $\mN$, and denote by $$\varphi:\PAtoms(\mN)\to \mP(Q)$$ the function which maps a partial atom of $\mN$ to the set of states whose right languages appear uncomplemented in $X$.
+
+\end{definition}
+
+\begin{note*}
+
+Each right language is a union of partial atoms (it is the union of all partial atoms in which it appears uncomplemented).
+
+\end{note*}
+
+\begin{definition}[Atomic states \& automata]
+
+We call a state $q$ of $\mN$ atomic if its right language is a union of atoms. Moreover, we say that $\mN$ is atomic if all of its states are.
+
+\end{definition}
+
+\section{Reverse-determinisation and atomicity}\label{sec2}
+
+We stick with the notations of the previous section, and denote by $D$ the operation of determinisation (note that it does not necessarily output an orbit-finite automaton) and by $R$ the operation of reversal. We also use the notation $\mL^R$ to denote the language recognised by $R(\mN)$. This section aims at proving the following result:
+
+\begin{theorem}\label{thm-revdetmin}
+
+A nominal automaton $\mN$ is atomic if and only if $D(R(\mN))$ is an observable automaton recognising $\mL^R$.
+
+\end{theorem}
+
+Note that this does not necessarily mean that the $D(R(\mN))$ is orbit-finite, since non-deterministic orbit-finite nominal automata recognise strictly more languages than deterministic orbit-finite ones. Here \textit{observable} means that no two reachable states have the same right language. We denote by $(\mQ,\Delta,\mI,\mF)$ the components of the automaton $D(R(\mN))$.
+
+Let us state a very straightforward lemma before starting the proof of the theorem:
+
+\begin{lemma}
+
+For any partial atom $X$ of $\mN$, we have: $$\mL_{\mI,\varphi(X)}^{D(R(\mN))}=X^R$$
+
+\end{lemma}
+
+\begin{proof}
+
+This is a direct consequence of the definition of atoms:
+
+\begin{align*}\mL_{\mI,\varphi(X)}^{D(R(\mN))}&=\{w\in\Sigma^*\mid\Delta(\mI,w)=\varphi(X)\}\\
+&=\{w\in\Sigma^*\mid\delta(q,w^R)\cap F\neq\varnothing\iff q\in\varphi(X)\}\\
+&=\{w^R\in\Sigma^*\mid w\in\mL_{q,F}^\mN\iff q\in\varphi(X)\}\\
+&=X^R
+\end{align*}
+
+\end{proof}
+
+\begin{proof}[Proof of Theorem \ref{thm-revdetmin}] This is an attempt at proving this theorem as directly as possible (in Brzozowski's paper, the proof relies on an absurd amount of lemmas/theorems).
+
+\begin{itemize}
+
+\item Suppose $D(R(\mN))$ is observable and consider some partial atom $X$ of $\mN$. Recall that the left language of $\varphi(X)$ in $D(R(\mN))$ is exactly $X^R$. Since we have defined partial atoms to be non-empty, this directly implies that $\varphi(X)$ is reachable in $D(R(\mN))$. 
+
+Let us show that $X$ corresponds exactly to the following atom of $\mL$:
+
+$$A = \bigcap_{u\in\Sigma^*}\begin{cases}\overline{u^{-1}\mL} & \text{if }u^R\not\in\mL_{\varphi(X),\mF}^{D(R(\mN))}\\u^{-1}\mL & \text{otherwise}\end{cases}$$
+
+\begin{itemize}
+
+\item Suppose that $w\in A$. Note that we have $w\in u^{-1}\mL$ (i.e. $uw\in\mL$) if and only if $$u^R\in\{w\mid\Delta(\varphi(X),w)\in\mF\}=\{w\mid\delta(I,w^R)\cap\varphi(X)\neq\varnothing\}$$ 
+We will now use the observability of $D(R(\mN))$ to prove the equality $\Delta(\mI,w^R)=\varphi(X)$ on states of this automaton. Let us show that these states have the same right language:
+\begin{align*}
+\Delta(\Delta(I,w^R),u)\in\mF&\iff\Delta(I,w^Ru)\in\mF\\
+&\iff w^Ru\in\mL^R\\
+&\iff u^Rw\in\mL\\
+&\iff u\in\{w\mid\Delta(\varphi(X),w)\in\mF\}\\
+&\iff\Delta(\varphi(X),u)\in\mF
+\end{align*}
+
+Since $D(R(\mN))$ is observable and both states involved are reachable, this shows that $\Delta(\mI,w^R)=\varphi(X)$. This gives directly $w^R\in \mL_{\mI,\varphi(X)}^{D(R(\mN))}=X^R$, so we have $w\in X$.
+
+\item Suppose that $w\in X$. Then $w^R\in X^R$ so $\Delta(\mI,w^R)=\varphi(X)$. It follows directly that $uw\in\mL$ (i.e. $w^Ru^R\in\mL^R$) if and only if $u^R\in\mL_{\varphi(X),\mF}^{D(R(\mN))}$.
+
+\end{itemize}
+
+Hence $A=X$, so $X$ is an atom of $\mL$. Since every right language of $\mN$ is a union of partial atoms, it is a union of atoms so $\mN$ is atomic.
+
+\item Now suppose $\mN$ is atomic and consider two different reachable states $S_1,S_2$ of $D(R(\mN))$, reached respectively by some words $u_1$ and $u_2$. We will show that there exists some word $w\in\mL_{S_1,\mF}^{D(R(\mN))}$ such that $w\not\in\mL_{S_2,\mF}^{D(R(\mN))}$.
+
+Since $S_2$ is reached by $u_2$, we have $u_2^R\in\mL_{q_2,F}^\mN$ for exactly those $q_2$ which are in $S_2$. Let us fix such a state $q_2\in S_2\setminus S_1$ (or conversely if $S_2\setminus S_1=\varnothing$). If we had $u_1^R\in \mL_{q_2,F}^\mN$ then we would have $u_1\in\mL_{\mI,q_2}^{R(\mN)}$ so $q_2\in S_1$ which is impossible so, by atomicity of $\mN$, there exists some atom $A$ such that $u_2^R\in A\subseteq \mL_{q_2,F}^\mN$ sand $u_1^R\not\in A$. We then have $$\{w\in\Sigma^*\mid wu_1^R\in\mL\}\neq\{w\in\Sigma^*\mid wu_2^R\in\mL\}$$ Choosing some $w$ such that $wu_1^R\in\mL$ and $wu_2^R\not\in\mL$ (or conversely), we have $u_1w^R\in\mL^R$ and $u_2w^R\not\in\mL^R$ which implies that $w^R\in\mL_{S_1,\mF}^{D(R(\mN))}$ and $w^R\not\in\mL_{S_2,\mF}^{D(R(\mN))}$.
+
+This shows that $D(R(\mN))$ is observable, which concludes our proof.
+
+\end{itemize}
+
+\end{proof}
+
+\section{Expressivity of atomic nominal automata}
+
+This section aims at solving the following question:
+
+\begin{theorem}
+
+Any non-deterministic orbit-finite nominal automaton is equivalent to an atomic orbit-finite nominal automaton.
+
+\end{theorem}
+
+Using the results of section \ref{sec2}, this boils down to showing that for any language $\mL$ recognised by some non-deterministic orbit-finite nominal automaton there exists a specific automaton which, when determinised, yields an observable (not necessarily orbit-finite) nominal automaton recognising $\mL$. I am not sure if this will be useful.
+
+An other possibility is to prove the Venn result on the spanish algorithm and use the output of the algorithm as proof.
+
+\bibliography{biblio}
+
+\end{document}
